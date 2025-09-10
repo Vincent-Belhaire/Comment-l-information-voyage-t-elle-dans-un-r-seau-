@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Voyage de l’information dans un réseau — 5e</title>
+  <meta name="description" content="Animation pédagogique interactive pour comprendre comment voyage l’information (binaire, supports, réseau)." />
+  <link rel="icon" href="favicon.ico">
+  <style>
+    :root{
+      --bg:#0f172a;--panel:#111827ee;--txt:#f8fafc;--muted:#cbd5e1;--accent:#38bdf8;--accent-2:#a78bfa;--ok:#22c55e;--err:#ef4444;--card:#111827;--card2:#0b1226;--focus:0 0 0 3px rgba(56,189,248,.5)
+    }
+    @media (prefers-color-scheme: light){:root{--bg:#ffffff;--panel:#ffffffee;--txt:#0f172a;--muted:#334155;--card:#f8fafc;--card2:#eef2ff}}
+    html,body{margin:0;height:100%;background:radial-gradient(1200px 600px at 50% -200px,var(--card2),var(--bg));color:var(--txt);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+    a{color:var(--accent)}
+    header{position:sticky;top:0;z-index:20;background:var(--panel);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.06)}
+    .wrap{max-width:1100px;margin-inline:auto;padding:1.2rem}
+    .top{display:flex;gap:1rem;align-items:center;justify-content:space-between}
+    .brand{display:flex;gap:.8rem;align-items:center}
+    .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;color:#001014;font-weight:900;animation:floatY 4s ease-in-out infinite}
+    nav a{margin-left:1rem;text-decoration:none;color:var(--txt);opacity:.85}
+    nav a:hover,nav a:focus{opacity:1;outline:none;box-shadow:var(--focus)}
+
+    main{padding:2rem 1.2rem}
+    h1{font-size:clamp(1.6rem, 2.2vw + 1rem, 2.6rem); line-height:1.2; margin:.4rem 0}
+    .subtitle{color:var(--muted);margin-top:.3rem}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-top:1.2rem}
+    .card{background:linear-gradient(160deg,var(--card),transparent 90%),linear-gradient(25deg,rgba(255,255,255,.06),transparent);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:1rem;box-shadow:0 10px 30px rgba(2,8,23,.35);opacity:0;transform:translateY(12px);transition:opacity .6s ease, transform .6s ease}
+    .card.visible{opacity:1;transform:translateY(0)}
+    .card h3{margin-top:0}
+
+    .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:1.2rem;align-items:center}
+    @media (max-width:860px){.hero{grid-template-columns:1fr}}
+
+    .chip{display:inline-flex;gap:.5rem;align-items:center;padding:.3rem .6rem;border-radius:999px;background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.35);font-size:.9rem;animation:glowPulse 3s ease-in-out infinite}
+
+    /* timeline */
+    .timeline{position:relative;margin:1rem 0;padding-left:1.2rem}
+    .timeline::before{content:"";position:absolute;left:10px;top:0;bottom:0;width:2px;background:linear-gradient(var(--accent),transparent);animation:scrollGlow 5s linear infinite}
+    .step{position:relative;margin:.8rem 0;padding-left:1rem;opacity:.15}
+    .step.reveal{opacity:1;transition:opacity .6s ease}
+    .step::before{content:"";position:absolute;left:-7px;top:.25rem;width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(56,189,248,.25);animation:pulse 2.6s ease-in-out infinite}
+
+    /* animations visuelles pédagogiques */
+    .anim-box{position:relative;height:180px;margin:1rem 0;border-radius:12px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.08));border:1px solid rgba(255,255,255,.08)}
+    .anim-title{font-size:1.05rem;color:var(--accent);margin:.2rem 0 .6rem}
+
+    /* Wi‑Fi */
+    .wifi-center{position:absolute;left:50%;bottom:56px;transform:translateX(-50%)}
+    .wifi-ping{position:absolute;inset:auto auto 0 50%;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px rgba(56,189,248,.9);transform:translateX(-50%)}
+    .wifi-wave{position:absolute;left:50%;bottom:56px;transform:translateX(-50%);border:2px solid var(--accent-2);border-radius:50%;opacity:0;animation:wave 2.6s ease-out infinite}
+    .device{position:absolute;width:56px;height:36px;border-radius:10px;border:2px solid var(--accent);display:grid;place-items:center;background:linear-gradient(180deg,#3a3a6a,#2c2c4d);box-shadow:0 6px 16px rgba(0,0,0,.35)}
+    .laptop{top:24px;left:26%}
+    .phone{top:24px;right:26%;width:26px;height:48px}
+
+    /* Fibre */
+    .fiber-path{position:absolute;left:10%;right:10%;top:50%;height:6px;border-radius:4px;background:linear-gradient(90deg,#2c2c4d,#4c4c8c,#2c2c4d);overflow:hidden}
+    .light{position:absolute;top:0;width:18px;height:6px;border-radius:3px;background:var(--accent-2);box-shadow:0 0 10px var(--accent-2),0 0 20px var(--accent-2);animation:beam 2s linear infinite}
+
+    /* Ethernet */
+    .ethernet{position:absolute;left:10%;right:10%;top:50%;height:10px;border-radius:6px;background:linear-gradient(90deg,#2c2c4d,#3a3a6a,#2c2c4d)}
+    .pulse{position:absolute;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok);animation:movePulse 1.6s linear infinite}
+
+    /* binaire diffus */
+    .bit{position:absolute;font-family:monospace;font-weight:700}
+
+    /* quiz */
+    .quiz{margin-top:1.2rem}
+    .q{margin:.8rem 0}
+    .choices{display:grid;gap:.4rem;margin-top:.4rem}
+    .choices label{display:flex;gap:.6rem;align-items:flex-start;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:.6rem .7rem;border-radius:12px;cursor:pointer}
+    .choices input{accent-color:var(--accent)}
+    .badge{display:inline-block;padding:.15rem .45rem;border-radius:6px;font-size:.85rem}
+    .ok{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.5)}
+    .err{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.5)}
+    .actions{display:flex;gap:.6rem;margin-top:1rem}
+    button{border-radius:12px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.08));padding:.6rem 1rem;color:var(--txt);cursor:pointer}
+    button:focus{outline:none;box-shadow:var(--focus)}
+
+    footer{border-top:1px solid rgba(255,255,255,.08);margin-top:2rem}
+    .small{font-size:.92rem;color:var(--muted)}
+
+    /* keyframes */
+    @keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    @keyframes glowPulse{0%{box-shadow:0 0 0 0 rgba(56,189,248,.45)}70%{box-shadow:0 0 0 12px rgba(56,189,248,0)}100%{box-shadow:0 0 0 0 rgba(56,189,248,0)}}
+    @keyframes scrollGlow{0%{opacity:.4}50%{opacity:1}100%{opacity:.4}}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+    @keyframes wave{0%{transform:translateX(-50%) scale(.5);opacity:.9}100%{transform:translateX(-50%) scale(2.4);opacity:0}}
+    @keyframes beam{0%{left:0}100%{left:100%}}
+    @keyframes movePulse{0%{left:0}100%{left:100%}}
+
+    /* respect du mouvement réduit */
+    @media (prefers-reduced-motion: reduce){
+      *,*:before,*:after{animation:none !important;transition:none !important}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap top" role="navigation" aria-label="Navigation principale">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">01</div>
+        <div>
+          <div style="font-weight:700">Voyage de l’information</div>
+          <div class="small">Niveau 5e — collège</div>
+        </div>
+      </div>
+      <nav>
+        <a href="#intro">Intro</a>
+        <a href="#supports">Supports</a>
+        <a href="#reseau">Réseau</a>
+        <a href="#binaire">Binaire</a>
+        <a href="#quiz">Quiz</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="intro">
+    <section class="hero card" aria-labelledby="titre">
+      <div>
+        <span class="chip" aria-label="Objectif de la séance">🎯 Objectif</span>
+        <h1 id="titre">Comment l’information voyage‑t‑elle dans un réseau ?</h1>
+        <p class="subtitle">Au collège, nous croisons Wi‑Fi, fibre, câble Ethernet… mais que se passe‑t‑il vraiment quand on envoie un message ?</p>
+        <div class="timeline" aria-label="Étapes du voyage de l’information">
+          <div class="step"><strong>1. Codage</strong> : le message est converti en bits (0 et 1).</div>
+          <div class="step"><strong>2. Transport</strong> : les bits se déplacent via un support (ondes radio, lumière, électricité).</div>
+          <div class="step"><strong>3. Routage</strong> : les équipements du réseau guident les paquets jusqu’à la bonne destination.</div>
+          <div class="step"><strong>4. Décodage</strong> : l’appareil réassemble les bits pour afficher texte, image, son.</div>
+        </div>
+      </div>
+      <div class="card" aria-label="Aperçu des supports">
+        <h3>Trois grandes familles de supports</h3>
+        <ul>
+          <li>📡 <strong>Ondes radio</strong> (Wi‑Fi, 4G/5G) → transmission <em>sans fil</em>.</li>
+          <li>💡 <strong>Lumière</strong> (fibre optique) → très haut débit, longues distances.</li>
+          <li>⚡ <strong>Électricité</strong> (cuivre/Ethernet) → fiable, faible latence.</li>
+        </ul>
+        <p class="small">Chaque support a des avantages et limites : portée, débit, sensibilité aux interférences…</p>
+      </div>
+    </section>
+
+    <section id="supports" style="margin-top:1.4rem">
+      <h2>Supports de transmission</h2>
+      <div class="grid">
+        <article class="card" aria-labelledby="wfi">
+          <h3 id="wfi">Wi‑Fi (ondes radio)</h3>
+          <p>Le signal se déplace dans l’air sous forme d’ondes électromagnétiques. Idéal pour la mobilité, mais sensible aux obstacles et aux interférences.</p>
+          <ul>
+            <li>✅ Pratique : pas de câble</li>
+            <li>⚠️ Débit variable selon la distance et les murs</li>
+            <li>🔐 Sécurité : mot de passe (WPA2/WPA3)</li>
+          </ul>
+          <div class="anim-title">Transmission par ondes radio</div>
+          <div class="anim-box" id="wifiBox">
+            <div class="wifi-center">
+              <div class="wifi-ping"></div>
+              <div class="wifi-wave" style="width:40px;height:40px"></div>
+              <div class="wifi-wave" style="width:70px;height:70px;animation-delay:.6s"></div>
+            </div>
+            <div class="device laptop">💻</div>
+            <div class="device phone">📱</div>
+          </div>
+        </article>
+
+        <article class="card" aria-labelledby="fibre">
+          <h3 id="fibre">Fibre optique (lumière)</h3>
+          <p>Des impulsions lumineuses circulent dans une fibre de verre/plastique. Très haut débit et très faible perte sur de longues distances.</p>
+          <ul>
+            <li>✅ Très rapide, stable</li>
+            <li>⚠️ Fragile à la courbure, nécessite des équipements optiques</li>
+          </ul>
+          <div class="anim-title">Transmission par fibre optique</div>
+          <div class="anim-box">
+            <div class="fiber-path">
+              <div class="light" style="animation-delay:0s"></div>
+              <div class="light" style="animation-delay:.5s"></div>
+              <div class="light" style="animation-delay:1s"></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" aria-labelledby="eth">
+          <h3 id="eth">Ethernet (électricité)</h3>
+          <p>Des signaux électriques circulent dans des paires torsadées (RJ45). Excellent pour le jeu, la vidéo et les usages sensibles à la latence.</p>
+          <ul>
+            <li>✅ Fiable, faible latence</li>
+            <li>⚠️ Nécessite un câble → moins mobile</li>
+          </ul>
+          <div class="anim-title">Transmission par câble Ethernet</div>
+          <div class="anim-box">
+            <div class="ethernet">
+              <div class="pulse" style="animation-delay:0s"></div>
+              <div class="pulse" style="animation-delay:.4s"></div>
+              <div class="pulse" style="animation-delay:.8s"></div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="reseau" style="margin-top:1.4rem">
+      <h2>Fonctionnement du réseau</h2>
+      <div class="grid">
+        <article class="card" aria-labelledby="routeur">
+          <h3 id="routeur">Équipements du réseau</h3>
+          <p>Chaque appareil a un rôle :</p>
+          <ul>
+            <li>📶 <strong>Box/routeur</strong> : distribue Internet, crée le réseau local.</li>
+            <li>🖧 <strong>Commutateur (switch)</strong> : relie plusieurs appareils en Ethernet.</li>
+            <li>🌐 <strong>Point d’accès</strong> : étend le Wi‑Fi.</li>
+            <li>🧭 <strong>Routeur</strong> : choisit le bon chemin pour les paquets.</li>
+          </ul>
+          <p class="small">Astuce : le routeur agit comme un « chef d’orchestre » qui guide les paquets jusqu’à leur destination.</p>
+        </article>
+        <article class="card" aria-labelledby="paquets">
+          <h3 id="paquets">Paquets & adresses</h3>
+          <p>Un message est découpé en <strong>paquets</strong>. Chaque paquet porte une <strong>adresse IP</strong> de source et de destination, un peu comme une enveloppe postale.</p>
+          <ul>
+            <li>📦 Paquet = morceau de message + en‑tête</li>
+            <li>🏷️ Adresse IP = numéro pour retrouver l’appareil</li>
+            <li>📬 Les paquets peuvent suivre des chemins différents puis être réassemblés</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="binaire" style="margin-top:1.4rem">
+      <h2>Codage de l’information</h2>
+      <div class="grid">
+        <article class="card" aria-labelledby="bits">
+          <h3 id="bits">Du message aux bits</h3>
+          <p>Un ordinateur ne comprend que des <strong>0</strong> et des <strong>1</strong>. Les lettres sont codées (ex. <abbr title="American Standard Code for Information Interchange">ASCII</abbr> / Unicode), les images et sons sont compressés puis envoyés sous forme binaire.</p>
+          <div class="small">Exemple : la lettre <code>A</code> vaut 65 en décimal, soit <code>01000001</code> en binaire (8 bits).</div>
+          <div class="anim-title">Code binaire (effet décoratif)</div>
+          <div class="anim-box" id="binaryBox"></div>
+        </article>
+        <article class="card" aria-labelledby="convert">
+          <h3 id="convert">Convertisseur binaire (essai)</h3>
+          <label for="char">Saisis un caractère :</label>
+          <input id="char" maxlength="1" inputmode="latin" style="width:120px;padding:.5rem;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05);color:var(--txt)" aria-describedby="binout">
+          <div id="binout" class="chip" style="margin-top:.6rem">—</div>
+          <p class="small">Astuce : essaie avec A, B, €, ? …</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="quiz" class="card quiz" aria-labelledby="qtitle" style="margin-top:1.4rem">
+      <h3 id="qtitle">Mini‑quiz (auto‑correction)</h3>
+
+      <div class="q" data-correct="b">
+        <div><strong>1.</strong> Quel support utilise la <em>lumière</em> pour transporter l’information ?</div>
+        <div class="choices">
+          <label><input type="radio" name="q1" value="a"> Wi‑Fi</label>
+          <label><input type="radio" name="q1" value="b"> Fibre optique</label>
+          <label><input type="radio" name="q1" value="c"> Ethernet</label>
+        </div>
+        <div class="feedback small"></div>
+      </div>
+
+      <div class="q" data-correct="c">
+        <div><strong>2.</strong> Quel support offre en général la <em>latence la plus faible</em> ?</div>
+        <div class="choices">
+          <label><input type="radio" name="q2" value="a"> Wi‑Fi</label>
+          <label><input type="radio" name="q2" value="b"> 4G/5G</label>
+          <label><input type="radio" name="q2" value="c"> Ethernet</label>
+        </div>
+        <div class="feedback small"></div>
+      </div>
+
+      <div class="q" data-correct="a">
+        <div><strong>3.</strong> Dans un réseau, qui <em>guide les paquets</em> vers la bonne destination ?</div>
+        <div class="choices">
+          <label><input type="radio" name="q3" value="a"> Le routeur</label>
+          <label><input type="radio" name="q3" value="b"> L’imprimante</label>
+          <label><input type="radio" name="q3" value="c"> Le clavier</label>
+        </div>
+        <div class="feedback small"></div>
+      </div>
+
+      <div class="actions">
+        <button id="check">Corriger</button>
+        <button id="reset">Réinitialiser</button>
+        <div id="score" class="small" aria-live="polite" style="margin-left:auto"></div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:1.4rem">
+      <h3>Crédits & utilisation</h3>
+      <p class="small">Ressource créée pour un usage pédagogique en technologie (cycle 4). Contenu sous licence CC BY‑SA. Compatible avec GitHub Pages et ENT (intégration possible via iframe).</p>
+      <p class="small">Dernière mise à jour : <span id="maj"></span></p>
+    </section>
+
+    <footer class="wrap small"></footer>
+  </main>
+
+  <script>
+    // Date de maj
+    document.getElementById('maj').textContent = new Date().toLocaleDateString('fr-FR');
+
+    // Apparition des cartes au scroll
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); } });
+    },{threshold:.16});
+    document.querySelectorAll('.card').forEach(el=>io.observe(el));
+
+    // Révélation progressive des étapes
+    const steps = document.querySelectorAll('.step');
+    steps.forEach((s,i)=> setTimeout(()=> s.classList.add('reveal'), 300 + i*450));
+
+    // Convertisseur binaire simple (UTF-16 code unit)
+    const charInput = document.getElementById('char');
+    const binOut = document.getElementById('binout');
+    if (charInput && binOut) {
+      charInput.addEventListener('input', () => {
+        const v = charInput.value;
+        if(!v){binOut.textContent='—';return}
+        const code = v.codePointAt(0);
+        const bin = code.toString(2).padStart(8,'0');
+        binOut.textContent = `${v} → ${bin}`;
+      });
+    }
+
+    // Quiz
+    const qs = [...document.querySelectorAll('.q')];
+    const checkBtn = document.getElementById('check');
+    const resetBtn = document.getElementById('reset');
+    const score = document.getElementById('score');
+
+    function correct(){
+      let ok=0;
+      qs.forEach((q)=>{
+        const corr = q.dataset.correct;
+        const chosen = q.querySelector('input[type=radio]:checked');
+        const fb = q.querySelector('.feedback');
+        if(!chosen){fb.innerHTML='<span class="badge err">À compléter</span>';return}
+        if(chosen.value===corr){ ok++; fb.innerHTML='<span class="badge ok">✅ Correct</span>'; }
+        else { fb.innerHTML='<span class="badge err">❌ Essaie encore</span>'; }
+      });
+      if (score) score.textContent = `Score : ${ok} / ${qs.length}`;
+    }
+    function reset(){
+      qs.forEach(q=>{
+        q.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
+        const fb = q.querySelector('.feedback');
+        if (fb) fb.textContent='';
+      });
+      if (score) score.textContent='';
+    }
+    if (checkBtn) checkBtn.addEventListener('click',correct);
+    if (resetBtn) resetBtn.addEventListener('click',reset);
+
+    // ===== Animations pédagogiques (sans erreur de syntaxe) =====
+
+    // Wi‑Fi : apparition de bits qui partent du centre vers les appareils
+    (function wifiAnim(){
+      const box = document.getElementById('wifiBox');
+      if(!box) return;
+      function spawnBit(){
+        const bit = document.createElement('div');
+        bit.className = 'bit';
+        bit.textContent = Math.random()>0.5 ? '1' : '0';
+        bit.style.color = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+        bit.style.left = '50%';
+        bit.style.bottom = '56px';
+        bit.style.transform = 'translate(-50%,0)';
+        box.appendChild(bit);
+        const targets = [box.querySelector('.laptop'), box.querySelector('.phone')].filter(Boolean);
+        if(!targets.length){ setTimeout(()=>bit.remove(), 1500); return; }
+        const dst = targets[Math.floor(Math.random()*targets.length)].getBoundingClientRect();
+        const rect = box.getBoundingClientRect();
+        const dx = (dst.left + dst.width/2) - (rect.left + rect.width/2);
+        const dy = (dst.top + dst.height/2) - (rect.top + rect.height/2) - 56;
+        const dur = 1400 + Math.random()*900;
+        const start = performance.now();
+        function step(t){
+          const p = Math.min(1,(t-start)/dur);
+          bit.style.opacity = p<.1? p*10 : (p>.9? (1-p)*10 : 1);
+          bit.style.transform = `translate(calc(-50% + ${dx*p}px), ${dy*p}px)`;
+          if(p<1) requestAnimationFrame(step); else bit.remove();
+        }
+        requestAnimationFrame(step);
+      }
+      for(let i=0;i<6;i++) setTimeout(spawnBit,i*250);
+      setInterval(spawnBit, 500);
+    })();
+
+    // Binaire décoratif : pluie de 0/1 douce
+    (function binaryRain(){
+      const box = document.getElementById('binaryBox');
+      if(!box) return;
+      function drop(){
+        const b = document.createElement('div');
+        b.className = 'bit';
+        b.textContent = Math.random()>0.5?'1':'0';
+        b.style.left = (10+Math.random()*80) + '%';
+        b.style.top = '10%';
+        b.style.opacity = 0;
+        box.appendChild(b);
+        const dur = 2000 + Math.random()*1500;
+        const start = performance.now();
+        function step(t){
+          const p = Math.min(1,(t-start)/dur);
+          b.style.top = (10 + 70*p) + '%';
+          b.style.opacity = p<.2? p*5 : (p>.8? (1-p)*5 : 1);
+          if(p<1) requestAnimationFrame(step); else b.remove();
+        }
+        requestAnimationFrame(step);
+      }
+      for(let i=0;i<8;i++) setTimeout(drop,i*180);
+      setInterval(drop, 280);
+    })();
+
+  </script>
+</body>
+</html>
