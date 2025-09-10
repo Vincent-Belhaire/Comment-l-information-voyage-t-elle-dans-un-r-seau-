@@ -285,132 +285,127 @@
       </div>
     </section>
 
-    <section class="card" style="margin-top:1.4rem">
-      <h3>Crédits & utilisation</h3>
-      <p class="small">Ressource créée pour un usage pédagogique en technologie (cycle 4). Contenu sous licence CC BY‑SA. Compatible avec GitHub Pages et ENT (intégration possible via iframe).</p>
-      <p class="small">Dernière mise à jour : <span id="maj"></span></p>
-    </section>
-
-    <footer class="wrap small"></footer>
+   
+    <footer class="wrap small" style="text-align: center;">
+  <p>Vincent Belhaire</p>
+  <p>Technologie - Le réseau</p>
+</footer>
   </main>
 
   <script>
-    // Date de maj
-    document.getElementById('maj').textContent = new Date().toLocaleDateString('fr-FR');
+   // Apparition des cartes au scroll
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); } });
+},{threshold:.16});
+document.querySelectorAll('.card').forEach(el=>io.observe(el));
 
-    // Apparition des cartes au scroll
-    const io = new IntersectionObserver((entries)=>{
-      entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); } });
-    },{threshold:.16});
-    document.querySelectorAll('.card').forEach(el=>io.observe(el));
+// Révélation progressive des étapes
+const steps = document.querySelectorAll('.step');
+steps.forEach((s,i)=> setTimeout(()=> s.classList.add('reveal'), 300 + i*450));
 
-    // Révélation progressive des étapes
-    const steps = document.querySelectorAll('.step');
-    steps.forEach((s,i)=> setTimeout(()=> s.classList.add('reveal'), 300 + i*450));
+// Convertisseur binaire simple (UTF-16 code unit)
+const charInput = document.getElementById('char');
+const binOut = document.getElementById('binout');
+if (charInput && binOut) {
+  charInput.addEventListener('input', () => {
+    const v = charInput.value;
+    if(!v){binOut.textContent='—';return}
+    const code = v.codePointAt(0);
+    const bin = code.toString(2).padStart(8,'0');
+    binOut.textContent = `${v} → ${bin}`;
+  });
+}
 
-    // Convertisseur binaire simple (UTF-16 code unit)
-    const charInput = document.getElementById('char');
-    const binOut = document.getElementById('binout');
-    if (charInput && binOut) {
-      charInput.addEventListener('input', () => {
-        const v = charInput.value;
-        if(!v){binOut.textContent='—';return}
-        const code = v.codePointAt(0);
-        const bin = code.toString(2).padStart(8,'0');
-        binOut.textContent = `${v} → ${bin}`;
-      });
+// Quiz
+const qs = [...document.querySelectorAll('.q')];
+const checkBtn = document.getElementById('check');
+const resetBtn = document.getElementById('reset');
+const score = document.getElementById('score');
+
+function correct(){
+  let ok=0;
+  qs.forEach((q)=>{
+    const corr = q.dataset.correct;
+    const chosen = q.querySelector('input[type=radio]:checked');
+    const fb = q.querySelector('.feedback');
+    if(!chosen){fb.innerHTML='<span class="badge err">À compléter</span>';return}
+    if(chosen.value===corr){ ok++; fb.innerHTML='<span class="badge ok">✅ Correct</span>'; }
+    else { fb.innerHTML='<span class="badge err">❌ Essaie encore</span>'; }
+  });
+  if (score) score.textContent = `Score : ${ok} / ${qs.length}`;
+}
+function reset(){
+  qs.forEach(q=>{
+    q.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
+    const fb = q.querySelector('.feedback');
+    if (fb) fb.textContent='';
+  });
+  if (score) score.textContent='';
+}
+if (checkBtn) checkBtn.addEventListener('click',correct);
+if (resetBtn) resetBtn.addEventListener('click',reset);
+
+// ===== Animations pédagogiques (sans erreur de syntaxe) =====
+
+// Wi‑Fi : apparition de bits qui partent du centre vers les appareils
+(function wifiAnim(){
+  const box = document.getElementById('wifiBox');
+  if(!box) return;
+  function spawnBit(){
+    const bit = document.createElement('div');
+    bit.className = 'bit';
+    bit.textContent = Math.random()>0.5 ? '1' : '0';
+    bit.style.color = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+    bit.style.left = '50%';
+    bit.style.bottom = '56px';
+    bit.style.transform = 'translate(-50%,0)';
+    box.appendChild(bit);
+    const targets = [box.querySelector('.laptop'), box.querySelector('.phone')].filter(Boolean);
+    if(!targets.length){ setTimeout(()=>bit.remove(), 1500); return; }
+    const dst = targets[Math.floor(Math.random()*targets.length)].getBoundingClientRect();
+    const rect = box.getBoundingClientRect();
+    const dx = (dst.left + dst.width/2) - (rect.left + rect.width/2);
+    const dy = (dst.top + dst.height/2) - (rect.top + rect.height/2) - 56;
+    const dur = 1400 + Math.random()*900;
+    const start = performance.now();
+    function step(t){
+      const p = Math.min(1,(t-start)/dur);
+      bit.style.opacity = p<.1? p*10 : (p>.9? (1-p)*10 : 1);
+      bit.style.transform = `translate(calc(-50% + ${dx*p}px), ${dy*p}px)`;
+      if(p<1) requestAnimationFrame(step); else bit.remove();
     }
+    requestAnimationFrame(step);
+  }
+  for(let i=0;i<6;i++) setTimeout(spawnBit,i*250);
+  setInterval(spawnBit, 500);
+})();
 
-    // Quiz
-    const qs = [...document.querySelectorAll('.q')];
-    const checkBtn = document.getElementById('check');
-    const resetBtn = document.getElementById('reset');
-    const score = document.getElementById('score');
-
-    function correct(){
-      let ok=0;
-      qs.forEach((q)=>{
-        const corr = q.dataset.correct;
-        const chosen = q.querySelector('input[type=radio]:checked');
-        const fb = q.querySelector('.feedback');
-        if(!chosen){fb.innerHTML='<span class="badge err">À compléter</span>';return}
-        if(chosen.value===corr){ ok++; fb.innerHTML='<span class="badge ok">✅ Correct</span>'; }
-        else { fb.innerHTML='<span class="badge err">❌ Essaie encore</span>'; }
-      });
-      if (score) score.textContent = `Score : ${ok} / ${qs.length}`;
+// Binaire décoratif : pluie de 0/1 douce
+(function binaryRain(){
+  const box = document.getElementById('binaryBox');
+  if(!box) return;
+  function drop(){
+    const b = document.createElement('div');
+    b.className = 'bit';
+    b.textContent = Math.random()>0.5?'1':'0';
+    b.style.left = (10+Math.random()*80) + '%';
+    b.style.top = '10%';
+    b.style.opacity = 0;
+    box.appendChild(b);
+    const dur = 2000 + Math.random()*1500;
+    const start = performance.now();
+    function step(t){
+      const p = Math.min(1,(t-start)/dur);
+      b.style.top = (10 + 70*p) + '%';
+      b.style.opacity = p<.2? p*5 : (p>.8? (1-p)*5 : 1);
+      if(p<1) requestAnimationFrame(step); else b.remove();
     }
-    function reset(){
-      qs.forEach(q=>{
-        q.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
-        const fb = q.querySelector('.feedback');
-        if (fb) fb.textContent='';
-      });
-      if (score) score.textContent='';
-    }
-    if (checkBtn) checkBtn.addEventListener('click',correct);
-    if (resetBtn) resetBtn.addEventListener('click',reset);
-
-    // ===== Animations pédagogiques (sans erreur de syntaxe) =====
-
-    // Wi‑Fi : apparition de bits qui partent du centre vers les appareils
-    (function wifiAnim(){
-      const box = document.getElementById('wifiBox');
-      if(!box) return;
-      function spawnBit(){
-        const bit = document.createElement('div');
-        bit.className = 'bit';
-        bit.textContent = Math.random()>0.5 ? '1' : '0';
-        bit.style.color = getComputedStyle(document.documentElement).getPropertyValue('--accent');
-        bit.style.left = '50%';
-        bit.style.bottom = '56px';
-        bit.style.transform = 'translate(-50%,0)';
-        box.appendChild(bit);
-        const targets = [box.querySelector('.laptop'), box.querySelector('.phone')].filter(Boolean);
-        if(!targets.length){ setTimeout(()=>bit.remove(), 1500); return; }
-        const dst = targets[Math.floor(Math.random()*targets.length)].getBoundingClientRect();
-        const rect = box.getBoundingClientRect();
-        const dx = (dst.left + dst.width/2) - (rect.left + rect.width/2);
-        const dy = (dst.top + dst.height/2) - (rect.top + rect.height/2) - 56;
-        const dur = 1400 + Math.random()*900;
-        const start = performance.now();
-        function step(t){
-          const p = Math.min(1,(t-start)/dur);
-          bit.style.opacity = p<.1? p*10 : (p>.9? (1-p)*10 : 1);
-          bit.style.transform = `translate(calc(-50% + ${dx*p}px), ${dy*p}px)`;
-          if(p<1) requestAnimationFrame(step); else bit.remove();
-        }
-        requestAnimationFrame(step);
-      }
-      for(let i=0;i<6;i++) setTimeout(spawnBit,i*250);
-      setInterval(spawnBit, 500);
-    })();
-
-    // Binaire décoratif : pluie de 0/1 douce
-    (function binaryRain(){
-      const box = document.getElementById('binaryBox');
-      if(!box) return;
-      function drop(){
-        const b = document.createElement('div');
-        b.className = 'bit';
-        b.textContent = Math.random()>0.5?'1':'0';
-        b.style.left = (10+Math.random()*80) + '%';
-        b.style.top = '10%';
-        b.style.opacity = 0;
-        box.appendChild(b);
-        const dur = 2000 + Math.random()*1500;
-        const start = performance.now();
-        function step(t){
-          const p = Math.min(1,(t-start)/dur);
-          b.style.top = (10 + 70*p) + '%';
-          b.style.opacity = p<.2? p*5 : (p>.8? (1-p)*5 : 1);
-          if(p<1) requestAnimationFrame(step); else b.remove();
-        }
-        requestAnimationFrame(step);
-      }
-      for(let i=0;i<8;i++) setTimeout(drop,i*180);
-      setInterval(drop, 280);
-    })();
-
+    requestAnimationFrame(step);
+  }
+  for(let i=0;i<8;i++) setTimeout(drop,i*180);
+  setInterval(drop, 280);
+})();
   </script>
 </body>
 </html>
+
